@@ -6,7 +6,7 @@
         "id": "lsZN9o7-RQ9i"
       },
       "source": [
-        "# Backtracking"
+        "# Homework 1"
       ]
     },
     {
@@ -593,7 +593,7 @@
     },
     {
       "cell_type": "code",
-      "execution_count": 12,
+      "execution_count": 28,
       "metadata": {
         "id": "RqC8aXjzRQ9m"
       },
@@ -642,13 +642,13 @@
     },
     {
       "cell_type": "code",
-      "execution_count": 13,
+      "execution_count": 29,
       "metadata": {
         "id": "QCHkJqy2RQ9n",
-        "outputId": "991dbc3a-b0b3-4744-d2b2-b9fff754ac31",
         "colab": {
           "base_uri": "https://localhost:8080/"
-        }
+        },
+        "outputId": "6fce8c31-46c8-4bf0-b197-537578f85fd0"
       },
       "outputs": [
         {
@@ -696,7 +696,7 @@
     },
     {
       "cell_type": "code",
-      "execution_count": null,
+      "execution_count": 39,
       "metadata": {
         "id": "vygQMR2BRQ9n"
       },
@@ -715,23 +715,32 @@
         "    solution : A dict mapping variables to values, or None if no\n",
         "      solution exists.\n",
         "  '''\n",
-        "  def backtrack(assignment, csp):\n",
+        "  def backtrack(assignment, vars_to_values):\n",
         "    if len(assignment) == len(csp.variables):\n",
         "      return assignment\n",
-        "    variable = select_unassigned_variable(csp, assignment)\n",
-        "    for val in order_variable_values(variable, csp):\n",
-        "      csp_copy = deepcopy(csp)\n",
-        "      assignment[variable] = val\n",
-        "      csp_copy.domains[variable] = [val]\n",
-        "      if reduce_csp_ac3(csp_copy, assignment):\n",
-        "        result = backtrack(assignment, csp_copy)\n",
-        "        if result is not None:\n",
-        "          return result\n",
         "\n",
-        "      del assignment[variable]\n",
+        "    #select unassigned var\n",
+        "    var = select_unassigned_variable(csp, vars_to_values, assignment)\n",
+        "\n",
+        "    #try values in order\n",
+        "    for val in order_variable_values(var, csp, vars_to_values):\n",
+        "      if value_is_consistent(var, val, csp.constraints, assignment):\n",
+        "        new = assignment.copy()\n",
+        "        new[var] = val\n",
+        "        new_vars_to_values = vars_to_values.assign(var, {val})\n",
+        "\n",
+        "        #reduce domain with AC3\n",
+        "        new_vars_to_values = reduce_csp_ac3(csp, new_vars_to_values)\n",
+        "        if new_vars_to_values is not None:\n",
+        "          result = backtrack(new, new_vars_to_values)\n",
+        "          if result is not None:\n",
+        "            return result\n",
         "\n",
         "    return None\n",
-        "  return backtrack({}, deepcopy(csp))"
+        "\n",
+        "  initial_vars_to_values = VariableToPossibleValuesMap({v: v.domain for v in csp.variables})\n",
+        "\n",
+        "  return backtrack({}, initial_vars_to_values)"
       ]
     },
     {
@@ -745,27 +754,20 @@
     },
     {
       "cell_type": "code",
-      "execution_count": 27,
+      "execution_count": 37,
       "metadata": {
         "id": "mWzXBCBnRQ9n",
-        "outputId": "da9fb070-e22d-47ee-e9ce-52384c9d672f",
         "colab": {
-          "base_uri": "https://localhost:8080/",
-          "height": 356
-        }
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "8b98ef75-a66e-4e94-cc3c-ac3d504714b0"
       },
       "outputs": [
         {
-          "output_type": "error",
-          "ename": "TypeError",
-          "evalue": "select_unassigned_variable() missing 1 required positional argument: 'partial_assignment'",
-          "traceback": [
-            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
-            "\u001b[0;31mTypeError\u001b[0m                                 Traceback (most recent call last)",
-            "\u001b[0;32m<ipython-input-27-3e23a2dfdcbb>\u001b[0m in \u001b[0;36m<cell line: 0>\u001b[0;34m()\u001b[0m\n\u001b[1;32m      6\u001b[0m \u001b[0mc3\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mImplicitBinaryConstraint\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mx2\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mx3\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;32mlambda\u001b[0m \u001b[0mv2\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mv3\u001b[0m\u001b[0;34m:\u001b[0m \u001b[0mv2\u001b[0m \u001b[0;34m!=\u001b[0m \u001b[0mv3\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      7\u001b[0m \u001b[0mcsp\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mBinaryCSP\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m{\u001b[0m\u001b[0mx1\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mx2\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mx3\u001b[0m\u001b[0;34m}\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m{\u001b[0m\u001b[0mc1\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mc2\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mc3\u001b[0m\u001b[0;34m}\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 8\u001b[0;31m \u001b[0;32massert\u001b[0m \u001b[0mrun_backtracking_search\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mcsp\u001b[0m\u001b[0;34m)\u001b[0m \u001b[0;34m==\u001b[0m \u001b[0;32mNone\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      9\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     10\u001b[0m \u001b[0mx1\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mCSPVariable\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m\"x1\"\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m{\u001b[0m\u001b[0;36m1\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;36m2\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;36m3\u001b[0m\u001b[0;34m}\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
-            "\u001b[0;32m<ipython-input-26-70a5f52c125d>\u001b[0m in \u001b[0;36mrun_backtracking_search\u001b[0;34m(csp)\u001b[0m\n\u001b[1;32m     28\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     29\u001b[0m     \u001b[0;32mreturn\u001b[0m \u001b[0;32mNone\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 30\u001b[0;31m   \u001b[0;32mreturn\u001b[0m \u001b[0mbacktrack\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m{\u001b[0m\u001b[0;34m}\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mdeepcopy\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mcsp\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m",
-            "\u001b[0;32m<ipython-input-26-70a5f52c125d>\u001b[0m in \u001b[0;36mbacktrack\u001b[0;34m(assignment, csp)\u001b[0m\n\u001b[1;32m     15\u001b[0m     \u001b[0;32mif\u001b[0m \u001b[0mlen\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0massignment\u001b[0m\u001b[0;34m)\u001b[0m \u001b[0;34m==\u001b[0m \u001b[0mlen\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mcsp\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mvariables\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     16\u001b[0m       \u001b[0;32mreturn\u001b[0m \u001b[0massignment\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 17\u001b[0;31m     \u001b[0mvariable\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mselect_unassigned_variable\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mcsp\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0massignment\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     18\u001b[0m     \u001b[0;32mfor\u001b[0m \u001b[0mval\u001b[0m \u001b[0;32min\u001b[0m \u001b[0morder_variable_values\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mvariable\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mcsp\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     19\u001b[0m       \u001b[0mcsp_copy\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mdeepcopy\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mcsp\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
-            "\u001b[0;31mTypeError\u001b[0m: select_unassigned_variable() missing 1 required positional argument: 'partial_assignment'"
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Tests passed.\n"
           ]
         }
       ],
